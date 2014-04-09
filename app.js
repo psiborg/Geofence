@@ -569,7 +569,16 @@ app.appendToStorage = function (name, data) {
     if (item === null) {
         item = "";
     }
-    localStorage.setItem(name, item + data);
+
+    try {
+        localStorage.setItem(name, item + data);
+    }
+    catch (ex) {
+        console.warn(ex.message);
+        for (var p in ex) {
+            console.log("\t" + p + ': ' + ex[p]);
+        }
+    }
 };
 
 app.leftPad = function (value, padding) {
