@@ -1,4 +1,4 @@
 Geofence
 ========
 
-A geofencing sample using Leaflet maps
+A geofencing sample using Leaflet maps.
