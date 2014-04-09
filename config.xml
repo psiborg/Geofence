@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:rim="http://www.blackberry.com/ns/widgets" xml:lang="en"
+    id="Geofence" version="0.1.0" rim:userAgent="WebWorks-BB10">
+
+    <name>Geofence</name>
+
+    <description>A geofencing sample using Leaflet maps.</description>
+
+    <author href="https://twitter.com/jim_ing" email="jing@blackberry.com"
+        rim:copyright="Copyright © 2014">Jim Ing</author>
+
+    <rim:category name="all" />
+
+    <content src="index.html" />
+
+    <icon src="img/icon-86.png" />
+    <icon src="img/icon-150.png" />
+
+    <feature id="blackberry.app">
+        <param name="orientation" value="auto"></param>
+    </feature>
+
+    <rim:permissions>
+<!--
+        <rim:permit>access_shared</rim:permit>
+        <rim:permit>read_device_identifying_information</rim:permit>
+-->
+        <rim:permit>read_geolocation</rim:permit>
+    </rim:permissions>
+
+    <!-- whitelist for img src -->
+    <access uri="*" subdomains="true" />
+
+    <!-- whitelist for Ajax requests -->
+    <access uri="http://ings.ca" subdomains="true" />
+
+    <feature id="blackberry.app" />
+    <feature id="blackberry.event" />
+    <feature id="blackberry.invoke" />
+    <feature id="blackberry.identity" />
+    <feature id="blackberry.sensors" />
+    <feature id="blackberry.system" />
+
+    <feature id="community.preventsleep" />
+
+    <license href="http://www.apache.org/licenses/LICENSE-2.0">
+        Licensed under the Apache License, Version 2.0 (the "License");
+        you may not use this file except in compliance with the License.
+        You may obtain a copy of the License at
+            http://www.apache.org/licenses/LICENSE-2.0
+        Unless required by applicable law or agreed to in writing, software
+        distributed under the License is distributed on an "AS IS" BASIS,
+        WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        See the License for the specific language governing permissions and limitations under the License.
+    </license>
+</widget>

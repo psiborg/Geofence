@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <title>Geofence</title>
+    <link rel="stylesheet" href="lib/leaflet-0.7.2/leaflet.css">
+    <link rel="stylesheet" href="lib/framework7/css/framework7.css">
+    <link rel="stylesheet" href="lib/framework7/css/my-app.css">
+    <link rel="stylesheet" href="app.css">
+    <style>
+    </style>
+  </head>
+  <body>
+    <div class="panel-overlay"></div>
+
+    <!-- Left panel with reveal effect -->
+    <div class="panel panel-left panel-reveal">
+      <div class="content-block">
+        <div class="content-block-title">Fences:</div>
+        <div class="list-block">
+          <ul id="fence-btns">
+            <li><a href="#" class="list-button item-link fence-btn" data-center="[43.639933, -79.608959]" data-points="[[43.644631, -79.610453], [43.644290, -79.609884], [43.644189, -79.609766], [43.644034, -79.609605], [43.643886, -79.609498], [43.643731, -79.609390], [43.643374, -79.609219], [43.643211, -79.609101], [43.643055, -79.608951], [43.642838, -79.608639], [43.642659, -79.608296], [43.642504, -79.607824], [43.642434, -79.607416], [43.642395, -79.606998], [43.642333, -79.606622], [43.642201, -79.606279], [43.642046, -79.606032], [43.641875, -79.605861], [43.641650, -79.605721], [43.641394, -79.605668], [43.641208, -79.605689], [43.640998, -79.605764], [43.640796, -79.605914], [43.640641, -79.606075], [43.640516, -79.606279], [43.640408, -79.606547], [43.640338, -79.606891], [43.640097, -79.606655], [43.639235, -79.605206], [43.638987, -79.605056], [43.637473, -79.606966], [43.637814, -79.607320], [43.637900, -79.607491], [43.637962, -79.607695], [43.637970, -79.607899], [43.637939, -79.608092], [43.637884, -79.608253], [43.637566, -79.608704], [43.638933, -79.610935], [43.641044, -79.614036], [43.641386, -79.614176]]">Mississauga</a></li>
+            <li><a href="#" class="list-button item-link fence-btn" data-center="[43.515653, -80.513976]" data-points="[[43.515724, -80.518633], [43.517735, -80.517329], [43.517451, -80.516406], [43.517416, -80.516235], [43.517385, -80.515918], [43.517397, -80.515468], [43.517470, -80.515001], [43.517470, -80.514883], [43.517451, -80.514722], [43.517404, -80.514582], [43.517397, -80.514523], [43.517432, -80.514379], [43.517451, -80.514325], [43.517517, -80.514277], [43.517774, -80.513697], [43.517894, -80.513397], [43.518128, -80.512678], [43.518023, -80.512603], [43.516272, -80.510586], [43.515440, -80.509631], [43.515397, -80.509701], [43.515292, -80.510114], [43.514848, -80.511305], [43.514603, -80.512115], [43.514506, -80.512201], [43.514685, -80.512356], [43.514459, -80.512624], [43.514277, -80.512914], [43.514245, -80.512995], [43.514098, -80.513177], [43.514090, -80.513247], [43.514113, -80.513279], [43.513331, -80.514877], [43.513277, -80.514915], [43.513191, -80.514899], [43.513090, -80.515113], [43.513059, -80.515221], [43.513071, -80.515403], [43.512981, -80.515602]]">Waterloo</a></li>
+            <li>
+              <a href="#" class="list-button item-link fence-btn">Custom:</a>
+              <label class="fenceFieldName">Center:</label>
+              <input type="text" class="fenceFieldValue" id="custom-center" value="[38.871017, -77.055893]"><br>
+              <label class="fenceFieldName">Points:</label>
+              <textarea class="fenceFieldValue" id="custom-points">[[38.872976, -77.054662], [38.870621, -77.053181], [38.868816, -77.055563], [38.870053, -77.058513], [38.872600, -77.057955]]</textarea>
+              <br>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right panel with cover effect -->
+    <div class="panel panel-right panel-cover">
+      <div class="content-block">
+        <div id="log"></div>
+      </div>
+    </div>
+
+    <!-- Views -->
+    <div class="views">
+      <div class="view view-main">
+        <div class="navbar">
+          <div class="navbar-inner">
+            <div class="center sliding">Geofence</div>
+          </div>
+        </div>
+
+        <div class="pages navbar-through toolbar-through">
+          <div data-page="index" class="page">
+            <div class="page-content">
+              <div id="map"></div>
+
+              <div class="content-block-title"></div>
+
+              <div class="content-block">
+                <div class="content-block">
+                  <div class="buttons-row">
+                    <a href="#" class="button" id="watch">Start</a>
+                    <a href="#" class="button" id="clear">Clear</a>
+                    <a href="#" class="button open-popup" data-popup=".popup" id="export">Export</a>
+                  </div>
+
+                  <table class="stats">
+                    <tr>
+                      <td class="field">Timestamp:</td>
+                      <td class="value" colspan="4"><span id="stat_timestamp"></span></td>
+                    </tr>
+                    <tr>
+                      <td class="field">Latitude:</td>
+                      <td class="value"><span id="stat_latitude"></span></td>
+                      <td class="gutter"></td>
+                      <td class="field">Accuracy:</td>
+                      <td class="value"><span id="stat_accuracy"></span></td>
+                    </tr>
+                    <tr>
+                      <td class="field">Longitude:</td>
+                      <td class="value"><span id="stat_longitude"></span></td>
+                      <td class="gutter"></td>
+                      <td class="field">Altitude:</td>
+                      <td class="value"><span id="stat_altitude"></span></td>
+                    </tr>
+                    <tr>
+                      <td class="field">Speed:</td>
+                      <td class="value"><span id="stat_speed"></span></td>
+                      <td class="gutter"></td>
+                      <td class="field">Heading:</td>
+                      <td class="value"><span id="stat_heading"></span></td>
+                    </tr>
+                    <tr>
+                      <td class="field">Distance:</td>
+                      <td class="value"><span id="stat_distance"></span></td>
+                      <td class="gutter"></td>
+                      <td class="field">Geofence</td>
+                      <td class="value"><span id="stat_geofence"></span></td>
+                    </tr>
+                    <tr>
+                      <td class="field">Zoom:</td>
+                      <td class="value"><span id="stat_zoom"></span></td>
+                      <td class="gutter"></td>
+                      <td class="field">Screen:</td>
+                      <td class="value"><span id="stat_screen"></span></td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Toolbar -->
+        <div class="toolbar">
+          <div class="toolbar-inner">
+            <a href="#" class="open-panel">Options</a>
+            <a href="#" class="open-panel" data-panel="right">Debug</a>
+        </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Popup -->
+    <div class="popup">
+      <div class="view navbar-fixed">
+        <div class="page">
+          <div class="navbar">
+            <div class="navbar-inner">
+              <div class="center">Export CSV</div>
+              <div class="right"><a href="#" class="link close-popup">Done</a></div>
+            </div>
+          </div>
+          <div class="page-content">
+            <div id="export-csv" class="content-block">
+              <!-- dyanmic content -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <audio id="snd" preload="auto">
+      <source src="sfx/female_goodbye.mp3" type="audio/mpeg">
+    </audio>
+
+    <script src="local:///chrome/webworks.js"></script>
+    <script type="text/javascript" src="lib/framework7/js/framework7.js"></script>
+    <script type="text/javascript" src="lib/framework7/js/my-app.js"></script>
+    <script src="lib/leaflet-0.7.2/leaflet.js"></script>
+    <script src="lib/leaflet-pip/leaflet-pip.min.js"></script>
+    <script src="lib/flyjsonp/flyjsonp.min.js"></script>
+    <script src="app.js"></script>
+    <script>
+    // add load events
+    if (navigator.userAgent.match(/WebWorks-BB10/)) {
+        window.addEventListener('load', function(e) {
+            document.addEventListener('webworksready', app.init);
+        }, false);
+    }
+    else {
+        window.addEventListener('load', app.init);
+    }
+    </script>
+  </body>
+</html>
