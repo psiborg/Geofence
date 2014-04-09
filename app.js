@@ -416,39 +416,37 @@ app.handleWatch = function (position) {
 
     app.map.panTo([coords.latitude, coords.longitude]);
 
-/*
     // Adjust zoom level based on speed
     if (coords.speed === null || coords.speed === '' || coords.speed === 0) {
         // do nothing
     }
-    else if (coords.speed > 0 && coords.speed < 5) {
+    else if (coords.speed > 0 && coords.speed < 15) {
         app.map.setZoom(18);
     }
-    else if (coords.speed >= 5 && coords.speed < 10) {
+    else if (coords.speed >= 15 && coords.speed < 30) {
         app.map.setZoom(17);
     }
-    else if (coords.speed >= 10 && coords.speed < 25) {
+    else if (coords.speed >= 30 && coords.speed < 60) {
         app.map.setZoom(16);
     }
-    else if (coords.speed >= 25 && coords.speed < 50) {
+    else if (coords.speed >= 60 && coords.speed < 90) {
         app.map.setZoom(15);
     }
-    else if (coords.speed >= 50 && coords.speed < 75) {
+    else if (coords.speed >= 90 && coords.speed < 120) {
         app.map.setZoom(14);
     }
-    else if (coords.speed >= 75 && coords.speed < 100) {
+    else if (coords.speed >= 120 && coords.speed < 150) {
         app.map.setZoom(13);
     }
-    else if (coords.speed >= 100 && coords.speed < 150) {
+    else if (coords.speed >= 150 && coords.speed < 180) {
         app.map.setZoom(12);
     }
-    else if (coords.speed >= 150 && coords.speed < 200) {
+    else if (coords.speed >= 180 && coords.speed < 220) {
         app.map.setZoom(11);
     }
     else {
         app.map.setZoom(10);
     }
-*/
 
     if (app.history.length > 0) {
         var d = app.calculateDistance(app.history[app.history.length - 1].coords.latitude, app.history[app.history.length - 1].coords.longitude, coords.latitude, coords.longitude);
@@ -565,12 +563,12 @@ app.calculateDistance = function (lat1, lon1, lat2, lon2) {
 app.appendToStorage = function (name, data) {
     console.info('app.appendToStorage:');
 
-    var item = localStorage.getItem(name);
-    if (item === null) {
-        item = "";
-    }
-
     try {
+        var item = localStorage.getItem(name);
+        if (item === null) {
+            item = "";
+        }
+
         localStorage.setItem(name, item + data);
     }
     catch (ex) {
