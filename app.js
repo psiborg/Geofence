@@ -2,8 +2,8 @@ var app = {
     history: [], // auto
     history2: [], // manual
 
-    geodataID: '',
-    watchID: null,
+    geodataID: 'geofence-data', // localStorage
+    watchID: null, // watchPosition
 
     pt: [], // center
     pts: [], // polygon
@@ -80,8 +80,6 @@ app.init = function () {
         [43.641386, -79.614176]
     ];
 
-    //app.pt = [38.87118, -77.057517]; // Pentagon
-
     app.map = L.map('map').setView(app.pt, 15);
 
 /*
@@ -127,7 +125,7 @@ app.init = function () {
         fillOpacity: 0.2
     });
 
-    // DEMO: draw bounding box around polygon
+    // Draw a bounding box around polygon
     app.rectangle = L.rectangle(app.polygon.getBounds(), {
         color: "#FF0000",
         dashArray: '5,5',
@@ -225,6 +223,8 @@ app.clearHistory = function () {
     document.getElementById('stat_geofence').innerHTML = '';
 
     document.getElementById('log').innerHTML = '';
+
+    localStorage.setItem(app.geodataID, '');
 
     if (app.layer2) {
         app.layer2.clearLayers();
@@ -476,7 +476,7 @@ app.handleWatch = function (position) {
 
     document.getElementById('log').innerHTML += log;
 
-    txt = timestamp.getTime() + ',' + coords.latitude + ',' + coords.longitude + ',' + coords.accuracy + ',' + coords.heading + ',' + coords.speed + ',' + app.dist + ',' + coords.altitude + "\n";
+    txt = timestamp.getTime() + ',' + coords.latitude + ',' + coords.longitude + ',' + coords.accuracy + ',' + coords.heading + ',' + coords.speed + ',' + app.dist + ',' + coords.altitude  + ',' + status + "\n";
     app.appendToStorage(app.geodataID, txt);
 
     app.marker.setPopupContent('<b>' + app.marker.getLatLng().lat.toFixed(6) + ', ' + app.marker.getLatLng().lng.toFixed(6) + '</b><br>');
@@ -496,9 +496,9 @@ app.toggleWatch = function (ev) {
     if (ev.target.innerText == 'Start') {
         var timestamp = new Date();
         var timestr = timestamp.getFullYear() + '' + app.leftPad(timestamp.getMonth() + 1, 2) + '' + app.leftPad(timestamp.getDate(), 2) + '-' + app.leftPad(timestamp.getHours(), 2) + '' + app.leftPad(timestamp.getMinutes(), 2) + '' + app.leftPad(timestamp.getSeconds(), 2);
-        var txt = 'DateTime,Latitude,Longitude,Accuracy,Heading,Speed,Distance,Altitude' + "\n";
-        app.geodataID = 'geodata-' + timestr;
-        app.appendToStorage(app.geodataID, txt);
+        var txt = 'DateTime,Latitude,Longitude,Accuracy,Heading,Speed,Distance,Altitude,Geofence' + "\n";
+
+        localStorage.setItem(app.geodataID, txt);
 
         if (window.blackberry && community && community.preventsleep) {
             res = community.preventsleep.setPreventSleep(true);
