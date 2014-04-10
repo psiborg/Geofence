@@ -18,6 +18,8 @@ var app = {
     //rectangle: null,
 
     lastStatus: '',
+    startTime: 0,
+    endTime: 0,
 
     dist: 0.0, // total distance travelled
 
@@ -442,59 +444,65 @@ app.handleWatch = function (position) {
     var ts = timestamp.getFullYear() + '/' + app.leftPad(timestamp.getMonth() + 1, 2) + '/' + app.leftPad(timestamp.getDate(), 2) + ' ' + app.leftPad(timestamp.getHours(), 2) + ':' + app.leftPad(timestamp.getMinutes(), 2) + ':' + app.leftPad(timestamp.getSeconds(), 2);
 
     var lat = coords.latitude.toFixed(6);
-    var lon = coords.longitude.toFixed(6);
-    var accuracy = (coords.accuracy) ? coords.accuracy : '&mdash;'; // accuracy is in meters
-    var heading = (coords.heading) ? coords.heading.toFixed(0) : '&mdash;';
-    var speed = (coords.speed) ? coords.speed * 3.6 + ' km/h' : '&mdash;'; // speed is m/s, multiply by 3.6 for km/h or 2.23693629 for mph
-    var distance = (app.dist) ? app.dist.toFixed(2) + ' km' : '&mdash;';
-    var altitude = (coords.altitude) ? coords.altitude.toFixed(0) : '&mdash;';
+    var lng = coords.longitude.toFixed(6);
+    var accuracy = (coords.accuracy) ? coords.accuracy : ''; // accuracy is in meters
+    var heading = (coords.heading) ? coords.heading.toFixed(0) : '';
+    var speed = (coords.speed) ? (coords.speed * 3.6).toFixed(0) : 0; // speed is m/s, multiply by 3.6 for km/h or 2.23693629 for mph
+    var speed_km = (coords.speed) ? speed + ' km/h' : '';
+    var distance = (app.dist) ? app.dist.toFixed(2) : 0;
+    var distance_km = (app.dist) ? distance + ' km' : '';
+    var altitude = (coords.altitude) ? coords.altitude.toFixed(0) : '';
+
+    var elapsedTime = app.msToTime(timestamp - app.startTime);
 
     document.getElementById('stat_timestamp').innerHTML = ts;
     document.getElementById('stat_latitude').innerHTML = lat;
-    document.getElementById('stat_longitude').innerHTML = lon;
-    document.getElementById('stat_speed').innerHTML = speed;
+    document.getElementById('stat_longitude').innerHTML = lng;
+    document.getElementById('stat_speed').innerHTML = speed_km;
     document.getElementById('stat_distance').innerHTML = distance;
     document.getElementById('stat_altitude').innerHTML = altitude;
     document.getElementById('stat_heading').innerHTML = heading;
     document.getElementById('stat_accuracy').innerHTML = accuracy;
+    document.getElementById('stat_elapsed').innerHTML = elapsedTime;
 
     // Adjust zoom level based on speed
-    if (coords.speed === null || coords.speed === '' || coords.speed === 0) {
+    if (speed === 0) {
         // do nothing
     }
-    else if (coords.speed > 0 && coords.speed < 15) {
-        app.map.setZoom(18);
+    else if (speed > 0 && speed < 15) {
+        app.map.setZoom(18); // ~30m
     }
-    else if (coords.speed >= 15 && coords.speed < 30) {
-        app.map.setZoom(17);
+    else if (speed >= 15 && speed < 30) {
+        app.map.setZoom(17); // ~50m
     }
-    else if (coords.speed >= 30 && coords.speed < 60) {
-        app.map.setZoom(16);
+    else if (speed >= 30 && speed < 60) {
+        app.map.setZoom(16); // ~100m
     }
-    else if (coords.speed >= 60 && coords.speed < 90) {
-        app.map.setZoom(15);
+    else if (speed >= 60 && speed < 90) {
+        app.map.setZoom(15); // ~300m
     }
-    else if (coords.speed >= 90 && coords.speed < 120) {
-        app.map.setZoom(14);
+    else if (speed >= 90 && speed < 120) {
+        app.map.setZoom(14); // ~500m
     }
-    else if (coords.speed >= 120 && coords.speed < 150) {
-        app.map.setZoom(13);
+    else if (speed >= 120 && speed < 150) {
+        app.map.setZoom(13); // ~1km
     }
-    else if (coords.speed >= 150 && coords.speed < 180) {
-        app.map.setZoom(12);
+    else if (speed >= 150 && speed < 180) {
+        app.map.setZoom(12); // ~2km
     }
-    else if (coords.speed >= 180 && coords.speed < 220) {
-        app.map.setZoom(11);
+    else if (speed >= 180 && speed < 260) {
+        app.map.setZoom(11); // ~5km
     }
     else {
-        app.map.setZoom(10);
+        app.map.setZoom(10); // ~10km
     }
 
-    log += '<span data-lat="' + coords.latitude + '" data-lng="' + coords.longitude + '">' + timestr + ': ' + coords.latitude.toFixed(6) + ', ' + coords.longitude.toFixed(6) + ' (' + coords.accuracy + ')' + '</span><br>';
+    log += '<span data-lat="' + lat + '" data-lng="' + lng + '">' + timestr + ': ' + lat + ', ' + lng + ' (' + accuracy + ')' + '</span><br>';
 
     document.getElementById('log').innerHTML += log;
 
-    txt = timestamp.getTime() + ',' + coords.latitude + ',' + coords.longitude + ',' + coords.accuracy + ',' + coords.heading + ',' + coords.speed + ',' + app.dist + ',' + coords.altitude  + ',' + status + "\n";
+    //txt = timestamp.getTime() + ',' + coords.latitude + ',' + coords.longitude + ',' + coords.accuracy + ',' + coords.heading + ',' + coords.speed + ',' + app.dist + ',' + coords.altitude  + ',' + status + "\n";
+    txt = timestamp.getTime() + ',' + lat + ',' + lng + ',' + accuracy + ',' + heading + ',' + speed + ',' + distance + ',' + altitude  + ',' + status + "\n";
     app.appendToStorage(app.geodataID, txt);
 
     app.marker.setPopupContent('<b>' + app.marker.getLatLng().lat.toFixed(6) + ', ' + app.marker.getLatLng().lng.toFixed(6) + '</b><br>');
@@ -515,13 +523,15 @@ app.toggleWatch = function (ev) {
         var timestamp = new Date();
         var timestr = timestamp.getFullYear() + '' + app.leftPad(timestamp.getMonth() + 1, 2) + '' + app.leftPad(timestamp.getDate(), 2) + '-' + app.leftPad(timestamp.getHours(), 2) + '' + app.leftPad(timestamp.getMinutes(), 2) + '' + app.leftPad(timestamp.getSeconds(), 2);
 
+        app.startTime = timestamp;
+
         if (window.blackberry && community && community.preventsleep) {
             res = community.preventsleep.setPreventSleep(true);
             console.log(res);
             document.getElementById('stat_screen').innerHTML = 'on';
         }
         else {
-            document.getElementById('stat_screen').innerHTML = '&mdash;';
+            document.getElementById('stat_screen').innerHTML = '';
         }
 
         app.watchID = navigator.geolocation.watchPosition(app.handleWatch, function (err) {
@@ -558,21 +568,34 @@ Number.prototype.toRad = function () {
     return this * Math.PI / 180;
 };
 
-app.calculateDistance = function (lat1, lon1, lat2, lon2) {
+app.calculateDistance = function (lat1, lng1, lat2, lng2) {
     //console.info('app.calculateDistance:');
-    //console.log('lat1=', lat1, 'lon1=', lon1, 'lat2=', lat2, 'lon2=', lon2);
+    //console.log('lat1=', lat1, 'lng1=', lng1, 'lat2=', lat2, 'lng2=', lng2);
 
     var R = 6371; // radius of the Earth in km
     var dLat = (lat2 - lat1).toRad();
-    var dLon = (lon2 - lon1).toRad();
+    var dLng = (lng2 - lng1).toRad();
     var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
         Math.cos(lat1.toRad()) * Math.cos(lat2.toRad()) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        Math.sin(dLng / 2) * Math.sin(dLng / 2);
     var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     var d = R * c;
 
     //console.log(d);
     return d;
+};
+
+app.msToTime = function (duration) {
+    var milliseconds = parseInt((duration % 1000) / 100),
+        seconds = parseInt((duration / 1000) % 60),
+        minutes = parseInt((duration / (1000 * 60)) % 60),
+        hours = parseInt((duration / (1000 * 60 * 60)) % 24);
+
+    hours = (hours < 10) ? "0" + hours : hours;
+    minutes = (minutes < 10) ? "0" + minutes : minutes;
+    seconds = (seconds < 10) ? "0" + seconds : seconds;
+
+    return hours + ":" + minutes + ":" + seconds + "." + milliseconds;
 };
 
 app.appendToStorage = function (name, data) {
