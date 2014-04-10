@@ -15,7 +15,7 @@ var app = {
     marker: null,
     polygon: null,
     polyline: null,
-    rectangle: null,
+    //rectangle: null,
 
     lastStatus: '',
 
@@ -23,6 +23,7 @@ var app = {
 
     accuracyThreshold: 60, // meters
 
+    serverAlert: false,
     serverUrl: 'http://ings.ca/post.php'
 };
 
@@ -33,6 +34,10 @@ app.init = function () {
     FlyJSONP.init({
         debug: false
     });
+
+    var txt = 'DateTime,Latitude,Longitude,Accuracy,Heading,Speed,Distance,Altitude,Geofence' + "\n";
+
+    localStorage.setItem(app.geodataID, txt);
 
     // Mississauga (Buckhorn and Tahoe) Campus
     app.pt = [43.639933, -79.608959];
@@ -126,21 +131,20 @@ app.init = function () {
     });
 
     // Draw a bounding box around polygon
-    app.rectangle = L.rectangle(app.polygon.getBounds(), {
-        color: "#FF0000",
-        dashArray: '5,5',
-        fill: false,
-        opacity: 0.4,
-        weight: 2
-    });
-
-    //app.map.fitBounds(app.polygon.getBounds());
+    // app.rectangle = L.rectangle(app.polygon.getBounds(), {
+    //     color: "#FF0000",
+    //     dashArray: '5,5',
+    //     fill: false,
+    //     opacity: 0.4,
+    //     weight: 2
+    // });
 
     app.marker = L.marker(app.pt, {
         draggable: true
     });
 
-    app.layer1 = L.layerGroup([app.polygon, app.rectangle]);
+    //app.layer1 = L.layerGroup([app.polygon, app.rectangle]);
+    app.layer1 = L.layerGroup([app.polygon]);
 
     app.layer1.addLayer(app.marker);
     app.layer1.addTo(app.map);
@@ -159,17 +163,14 @@ app.init = function () {
         app.handleMove(coords);
     });
 
-    document.getElementById('fence-btns').addEventListener('click', app.updateFence);
-    document.getElementById('fence-btns').addEventListener('touchend', app.updateFence);
+    var touch = ('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch;
+    var evt = (touch) ? 'touchstart' : 'click';
+    console.log('touch =', touch, 'evt =', evt);
 
-    document.getElementById('watch').addEventListener('click', app.toggleWatch);
-    document.getElementById('watch').addEventListener('touchend', app.toggleWatch);
-
-    document.getElementById('clear').addEventListener('click', app.clearHistory);
-    document.getElementById('clear').addEventListener('touchend', app.clearHistory);
-
-    document.getElementById('export').addEventListener('click', app.exportCSV);
-    document.getElementById('export').addEventListener('touchend', app.exportCSV);
+    document.getElementById('fence-btns').addEventListener(evt, app.updateFence);
+    document.getElementById('watch').addEventListener(evt, app.toggleWatch);
+    document.getElementById('clear').addEventListener(evt, app.clearHistory);
+    document.getElementById('export').addEventListener(evt, app.exportCSV);
 
     document.getElementById('log').addEventListener('click', function (ev) {
         if (ev.target.dataset['lat'] && ev.target.dataset['lng']) {
@@ -196,13 +197,20 @@ app.updateFence = function (ev) {
     }
 
     app.polygon.setLatLngs(pts);
-    app.rectangle.setLatLngs(app.polygon.getBounds()); // bug?
+    //app.rectangle.setLatLngs(app.polygon.getBounds()); // BUG: rectangle disappears!
     app.marker.setLatLng(pt);
     app.map.panTo(pt);
 
     app.map.fitBounds(app.polygon.getBounds());
+/*
+    if (app.layer2) {
+        app.layer2.clearLayers();
+    }
+*/
+    app.lastStatus = '';
 
-    app.clearHistory();
+    app.history2 = [];
+    app.history2.push({lat: pt[0], lng: pt[1]});
 };
 
 app.clearHistory = function () {
@@ -224,7 +232,7 @@ app.clearHistory = function () {
 
     document.getElementById('log').innerHTML = '';
 
-    localStorage.setItem(app.geodataID, '');
+    //localStorage.setItem(app.geodataID, '');
 
     if (app.layer2) {
         app.layer2.clearLayers();
@@ -232,11 +240,15 @@ app.clearHistory = function () {
 };
 
 app.exportCSV = function () {
-    console.info('app.clearHistory:', localStorage.getItem(app.geodataID));
+    console.info('app.exportCSV:');
     document.getElementById('export-csv').innerHTML = localStorage.getItem(app.geodataID);
 };
 
 app.sendAlert = function (str) {
+    if (app.serverAlert !== true) {
+        return;
+    }
+
     console.info('app.sendAlert:', str);
 
     // Use Ajax if this is a WebWorks app
@@ -360,6 +372,9 @@ app.handleMove = function (coords) {
             color: '#0000FF',
             opacity: 0.8
         });
+
+        app.layer2 = L.layerGroup([app.polyline]);
+        app.layer2.addTo(app.map);
     }
 
     app.history2.push({
@@ -410,11 +425,38 @@ app.handleWatch = function (position) {
             color: '#0000FF',
             opacity: 0.8
         });
+
+        app.layer2 = L.layerGroup([app.polyline]);
+        app.layer2.addTo(app.map);
     }
 
     app.marker.setLatLng([coords.latitude, coords.longitude]);
 
     app.map.panTo([coords.latitude, coords.longitude]);
+
+    if (app.history.length > 0) {
+        var d = app.calculateDistance(app.history[app.history.length - 1].coords.latitude, app.history[app.history.length - 1].coords.longitude, coords.latitude, coords.longitude);
+        app.dist += parseFloat(d);
+    }
+
+    var ts = timestamp.getFullYear() + '/' + app.leftPad(timestamp.getMonth() + 1, 2) + '/' + app.leftPad(timestamp.getDate(), 2) + ' ' + app.leftPad(timestamp.getHours(), 2) + ':' + app.leftPad(timestamp.getMinutes(), 2) + ':' + app.leftPad(timestamp.getSeconds(), 2);
+
+    var lat = coords.latitude.toFixed(6);
+    var lon = coords.longitude.toFixed(6);
+    var accuracy = (coords.accuracy) ? coords.accuracy : '&mdash;'; // accuracy is in meters
+    var heading = (coords.heading) ? coords.heading.toFixed(0) : '&mdash;';
+    var speed = (coords.speed) ? coords.speed * 3.6 + ' km/h' : '&mdash;'; // speed is m/s, multiply by 3.6 for km/h or 2.23693629 for mph
+    var distance = (app.dist) ? app.dist.toFixed(2) + ' km' : '&mdash;';
+    var altitude = (coords.altitude) ? coords.altitude.toFixed(0) : '&mdash;';
+
+    document.getElementById('stat_timestamp').innerHTML = ts;
+    document.getElementById('stat_latitude').innerHTML = lat;
+    document.getElementById('stat_longitude').innerHTML = lon;
+    document.getElementById('stat_speed').innerHTML = speed;
+    document.getElementById('stat_distance').innerHTML = distance;
+    document.getElementById('stat_altitude').innerHTML = altitude;
+    document.getElementById('stat_heading').innerHTML = heading;
+    document.getElementById('stat_accuracy').innerHTML = accuracy;
 
     // Adjust zoom level based on speed
     if (coords.speed === null || coords.speed === '' || coords.speed === 0) {
@@ -448,30 +490,6 @@ app.handleWatch = function (position) {
         app.map.setZoom(10);
     }
 
-    if (app.history.length > 0) {
-        var d = app.calculateDistance(app.history[app.history.length - 1].coords.latitude, app.history[app.history.length - 1].coords.longitude, coords.latitude, coords.longitude);
-        app.dist += parseFloat(d);
-    }
-
-    var ts = timestamp.getFullYear() + '/' + app.leftPad(timestamp.getMonth() + 1, 2) + '/' + app.leftPad(timestamp.getDate(), 2) + ' ' + app.leftPad(timestamp.getHours(), 2) + ':' + app.leftPad(timestamp.getMinutes(), 2) + ':' + app.leftPad(timestamp.getSeconds(), 2);
-
-    var lat = coords.latitude.toFixed(6);
-    var lon = coords.longitude.toFixed(6);
-    var accuracy = (coords.accuracy) ? coords.accuracy : '';
-    var heading = (coords.heading) ? coords.heading.toFixed(0) : '';
-    var speed = (coords.speed) ? coords.speed + ' km/h' : '';
-    var distance = (app.dist) ? app.dist.toFixed(2) + ' km' : '';
-    var altitude = (coords.altitude) ? coords.altitude.toFixed(0) : '';
-
-    document.getElementById('stat_timestamp').innerHTML = ts;
-    document.getElementById('stat_latitude').innerHTML = lat;
-    document.getElementById('stat_longitude').innerHTML = lon;
-    document.getElementById('stat_speed').innerHTML = speed;
-    document.getElementById('stat_distance').innerHTML = distance;
-    document.getElementById('stat_altitude').innerHTML = altitude;
-    document.getElementById('stat_heading').innerHTML = heading;
-    document.getElementById('stat_accuracy').innerHTML = accuracy;
-
     log += '<span data-lat="' + coords.latitude + '" data-lng="' + coords.longitude + '">' + timestr + ': ' + coords.latitude.toFixed(6) + ', ' + coords.longitude.toFixed(6) + ' (' + coords.accuracy + ')' + '</span><br>';
 
     document.getElementById('log').innerHTML += log;
@@ -496,9 +514,6 @@ app.toggleWatch = function (ev) {
     if (ev.target.innerText == 'Start') {
         var timestamp = new Date();
         var timestr = timestamp.getFullYear() + '' + app.leftPad(timestamp.getMonth() + 1, 2) + '' + app.leftPad(timestamp.getDate(), 2) + '-' + app.leftPad(timestamp.getHours(), 2) + '' + app.leftPad(timestamp.getMinutes(), 2) + '' + app.leftPad(timestamp.getSeconds(), 2);
-        var txt = 'DateTime,Latitude,Longitude,Accuracy,Heading,Speed,Distance,Altitude,Geofence' + "\n";
-
-        localStorage.setItem(app.geodataID, txt);
 
         if (window.blackberry && community && community.preventsleep) {
             res = community.preventsleep.setPreventSleep(true);
@@ -506,7 +521,7 @@ app.toggleWatch = function (ev) {
             document.getElementById('stat_screen').innerHTML = 'on';
         }
         else {
-            document.getElementById('stat_screen').innerHTML = 'N/A';
+            document.getElementById('stat_screen').innerHTML = '&mdash;';
         }
 
         app.watchID = navigator.geolocation.watchPosition(app.handleWatch, function (err) {
@@ -544,7 +559,7 @@ Number.prototype.toRad = function () {
 };
 
 app.calculateDistance = function (lat1, lon1, lat2, lon2) {
-    console.info('app.calculateDistance:');
+    //console.info('app.calculateDistance:');
     //console.log('lat1=', lat1, 'lon1=', lon1, 'lat2=', lat2, 'lon2=', lon2);
 
     var R = 6371; // radius of the Earth in km
@@ -556,7 +571,7 @@ app.calculateDistance = function (lat1, lon1, lat2, lon2) {
     var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     var d = R * c;
 
-    console.log(d);
+    //console.log(d);
     return d;
 };
 
