@@ -173,6 +173,7 @@ app.init = function () {
     document.getElementById('watch').addEventListener(evt, app.toggleWatch);
     document.getElementById('clear').addEventListener(evt, app.clearHistory);
     document.getElementById('export').addEventListener(evt, app.exportCSV);
+    document.getElementById('email').addEventListener(evt, app.emailCSV);
 
     document.getElementById('log').addEventListener('click', function (ev) {
         if (ev.target.dataset['lat'] && ev.target.dataset['lng']) {
@@ -238,6 +239,34 @@ app.clearHistory = function () {
 
     if (app.layer2) {
         app.layer2.clearLayers();
+    }
+};
+
+app.emailCSV = function () {
+    var email = document.getElementById('email-to').value,
+        emailList = email.split(','),
+        subject = document.getElementById('email-subject').value,
+        body = document.getElementById('export-csv').innerHTML;
+
+    console.log(email, emailList, subject, body);
+
+    if (window.blackberry) {
+        blackberry.invoke.card.invokeEmailComposer({
+            subject: subject,
+            body: body,
+            to: emailList
+            //cc: ["c@c.ca, d@d.com"],
+            //attachment: ["/path/to/an/attachment.txt", "path/to/another/attachment.txt"]
+        }, function (done) {
+            console.log(done);
+        }, function (cancel) {
+            console.log(cancel);
+        }, function (invokeError) {
+            console.log(invokeError);
+        });
+    }
+    else {
+        window.location = "mailto:" + email + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
     }
 };
 
@@ -586,10 +615,10 @@ app.calculateDistance = function (lat1, lng1, lat2, lng2) {
 };
 
 app.msToTime = function (duration) {
-    var milliseconds = parseInt((duration % 1000) / 100),
-        seconds = parseInt((duration / 1000) % 60),
-        minutes = parseInt((duration / (1000 * 60)) % 60),
-        hours = parseInt((duration / (1000 * 60 * 60)) % 24);
+    var milliseconds = parseInt((duration % 1000) / 100, 10),
+        seconds = parseInt((duration / 1000) % 60, 10),
+        minutes = parseInt((duration / (1000 * 60)) % 60, 10),
+        hours = parseInt((duration / (1000 * 60 * 60)) % 24, 10);
 
     hours = (hours < 10) ? "0" + hours : hours;
     minutes = (minutes < 10) ? "0" + minutes : minutes;

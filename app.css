@@ -2,6 +2,11 @@ label {
   font-weight: bold;
 }
 
+.exportValue {
+  width: 99%;
+  height: 29px;
+}
+
 #map {
   width: 100%;
   height: 75%;

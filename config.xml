@@ -37,6 +37,7 @@
     <feature id="blackberry.app" />
     <feature id="blackberry.event" />
     <feature id="blackberry.invoke" />
+    <feature id="blackberry.invoke.card" />
     <feature id="blackberry.identity" />
     <feature id="blackberry.sensors" />
     <feature id="blackberry.system" />
