@@ -34,6 +34,8 @@ app.init = function () {
     console.info('app.init:');
     console.log('Leaflet ' + L.version);
 
+    window.deferredOptimization = false;
+
     FlyJSONP.init({
         debug: false
     });
