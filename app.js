@@ -13,6 +13,7 @@ var app = {
     layer1: null,
     layer2: null,
     marker: null,
+    radius: null,
     polygon: null,
     polyline: null,
     //rectangle: null,
@@ -463,6 +464,20 @@ app.handleWatch = function (position) {
 
     app.marker.setLatLng([coords.latitude, coords.longitude]);
 
+    var radius = coords.accuracy / 2;
+
+    if (app.radius === null) {
+        app.radius = L.circle([coords.latitude, coords.longitude], radius, {
+            fillOpacity: 0.1,
+            opacity: 0.3,
+            weight: 3
+        }).addTo(app.map);
+    }
+    else {
+        app.radius.setLatLng([coords.latitude, coords.longitude]);
+        app.radius.setRadius(radius);
+    }
+
     app.map.panTo([coords.latitude, coords.longitude]);
 
     if (app.history.length > 0) {
@@ -495,6 +510,7 @@ app.handleWatch = function (position) {
     document.getElementById('stat_elapsed').innerHTML = elapsedTime;
 
     // Adjust zoom level based on speed
+/*
     if (speed === 0) {
         // do nothing
     }
@@ -525,7 +541,7 @@ app.handleWatch = function (position) {
     else {
         app.map.setZoom(10); // ~10km
     }
-
+*/
     log += '<span data-lat="' + lat + '" data-lng="' + lng + '">' + timestr + ': ' + lat + ', ' + lng + ' (' + accuracy + ')' + '</span><br>';
 
     document.getElementById('log').innerHTML += log;
