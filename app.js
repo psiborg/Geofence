@@ -23,7 +23,7 @@ var app = {
 
     dist: 0.0, // total distance travelled
 
-    accuracyThreshold: 600, // meters
+    accuracyThreshold: 1000, // meters
 
     serverAlert: false,
     serverUrl: 'http://ings.ca/post.php'
