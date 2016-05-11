@@ -509,7 +509,6 @@ app.handleWatch = function (position) {
     document.getElementById('stat_heading').innerHTML = heading;
     document.getElementById('stat_accuracy').innerHTML = accuracy;
     document.getElementById('stat_elapsed').innerHTML = elapsedTime;
-    document.getElementById('stat_pts').innerHTML = app.history.length;
 
     // Adjust zoom level based on speed
 /*
@@ -555,6 +554,8 @@ app.handleWatch = function (position) {
     app.marker.setPopupContent('<b>' + app.marker.getLatLng().lat.toFixed(6) + ', ' + app.marker.getLatLng().lng.toFixed(6) + '</b><br>');
 
     app.history.push(position);
+
+    document.getElementById('stat_pts').innerHTML = app.history.length;
 };
 
 app.toggleWatch = function (ev) {
