@@ -233,6 +233,7 @@ app.clearHistory = function () {
     document.getElementById('stat_heading').innerHTML = '';
     document.getElementById('stat_accuracy').innerHTML = '';
     document.getElementById('stat_geofence').innerHTML = '';
+    document.getElementById('stat_pts').innerHTML = '';
 
     document.getElementById('log').innerHTML = '';
 
@@ -508,6 +509,7 @@ app.handleWatch = function (position) {
     document.getElementById('stat_heading').innerHTML = heading;
     document.getElementById('stat_accuracy').innerHTML = accuracy;
     document.getElementById('stat_elapsed').innerHTML = elapsedTime;
+    document.getElementById('stat_pts').innerHTML = app.history.length;
 
     // Adjust zoom level based on speed
 /*
