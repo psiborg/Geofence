@@ -96,7 +96,7 @@ app.init = function () {
     }).addTo(app.map);
 */
 
-    L.tileLayer('http://{s}.googleapis.com/vt?lyrs=m@174225136&src=apiv3&hl=en-US&x={x}&y={y}&z={z}&s=Galile&style=api%7Csmartmaps', {
+    L.tileLayer('https://{s}.googleapis.com/vt?lyrs=m@174225136&src=apiv3&hl=en-US&x={x}&y={y}&z={z}&s=Galile&style=api%7Csmartmaps', {
         attribution: 'Map data &copy; 2014 Google',
         maxZoom: 22,
         subdomains: ['mt0', 'mt1']
